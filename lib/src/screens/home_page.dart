@@ -33,8 +33,16 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: () => context.goNamed('info', queryParameters: {'text': 'info'}),
             ),
             ListTile(
-              title: Text('Страница 2'),
-              onTap: () => context.goNamed('details'),
+              title: Text('Авторизация'),
+              onTap: () => context.goNamed('login'),
+            ),
+            ListTile(
+              title: Text('Регистрация'),
+              onTap: () => context.goNamed('register'),
+            ),
+            ListTile(
+              title: Text('Профиль'),
+              onTap: () => context.goNamed('profile'),
             ),
             // Добавьте больше ListTile для других страниц
           ],
