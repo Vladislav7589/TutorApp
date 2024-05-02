@@ -2,38 +2,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutor_app/src/screens/profile_page.dart';
 import 'package:tutor_app/src/screens/register_page.dart';
 
+import '../providers/dio_provider.dart';
 import '../widgets/text_field_widget.dart';
 import 'package:http/http.dart' as http;
 
-
-Future<void> authenticate(String email, String password) async {
-  final String apiUrl = 'http://0.0.0.0:8000/api/login/';
-  print(email);
-  print(password);
-  final response = await http.post(
-    Uri.parse(apiUrl),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: json.encode({'email': email, 'password': password}),
-  );
-
-  if (response.statusCode == 200) {
-    final responseData = json.decode(response.body);
-    final accessToken = responseData['access'];
-    final refreshToken = responseData['refresh'];
-    // Сохраняем токены в SharedPreferences
-    saveTokens(accessToken, refreshToken);
-    print(response.body);
-  } else {
-    throw Exception('Failed to authenticate user: ${response.body}');
-  }
-}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -112,37 +90,41 @@ class LoginPageState extends State<LoginPage> {
           obscureText: true,
           keyboardType: TextInputType.visiblePassword,
         ),
-        ElevatedButton(
-          onPressed: () async {
-            final prefs = await SharedPreferences.getInstance();
-            final refreshToken = prefs.getString('refreshToken') ?? '';
-            refreshTokens(refreshToken);
+        Consumer(
+          builder: (_, WidgetRef ref, __) {
+            return ElevatedButton(
+              onPressed: ()   {
+                final Map<String, dynamic> authData = {
+                  'email': emailController.text,
+                  'password': passwordController.text,
+                };
+                ref.watch(authenticateProvider(authData));
+                ref.refresh(loadUserIdProvider);
+                context.goNamed('profile');
+              },
+              child: const Text(
+                'войти',
+                style: TextStyle(color: Colors.red),
+              ),
+            );
+
           },
-          child: const Text(
-            'обновить',
-            style: TextStyle(color: Colors.red),
-          ),
         ),
         ElevatedButton(
-          onPressed: () async {
+          onPressed: ()   async {
             final prefs = await SharedPreferences.getInstance();
             final accessToken = prefs.getString('accessToken') ?? '';
+            final refreshToken = prefs.getString('refreshToken') ?? '';
+            final id = prefs.getInt('id') ?? '';
             print(accessToken);
-                      },
-          child: const Text(
-            'вывести',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: ()  {
-            authenticate(emailController.text, passwordController.text);
+            print(refreshToken);
+            print(id);
           },
           child: const Text(
-            'войти',
+            'Вывести',
             style: TextStyle(color: Colors.red),
           ),
-        ),
+        )
       ],
     );
   }

@@ -1,92 +1,58 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutor_app/src/providers/dio_provider.dart';
 
-Future<Map<String, dynamic>> fetchUserData(String token) async {
-  final url = 'http://0.0.0.0:8000/api/users/'; // Замените на свой URL API
-  final response = await http.get(
-    Uri.parse(url),
-    headers: {
-      'Authorization': 'Bearer $token'
-    },
-  );
-  print('Bearer $token');
 
-  if (response.statusCode == 200) {
-    // Если запрос успешен, парсим ответ в JSON и возвращаем данные пользователя
-    return json.decode(response.body);
-  } else {
-    // Если произошла ошибка, выводим сообщение об ошибке
-    throw Exception('Failed to load user data: ${response.body}');
-  }
-}
-Future<Map<String, dynamic>> loadTokens() async {
-  final prefs = await SharedPreferences.getInstance();
-  final refreshToken = prefs.getString('refreshToken') ?? '';
-  final accessToken = prefs.getString('accessToken') ?? '';
-  return {'refreshToken': refreshToken, 'accessToken': accessToken};
-}
-Future<void> saveTokenSP(String accessToken) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('accessToken', accessToken);
-}
+// Future<void> refreshTokens(String rToken) async {
+//   // URL для обновления токена
+//   Uri url = Uri.parse('http://0.0.0.0:8000/api/token/refresh/');
+//
+//   // Тело запроса с токеном обновления
+//   Map<String, String> body = {
+//     'refresh': rToken,
+//   };
+//
+//   // Отправка POST запроса на обновление токена
+//   try {
+//     final response = await http.post(
+//       url,
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode(body),
+//     );
+//
+//     // Обработка ответа
+//     if (response.statusCode == 200) {
+//       // Токены успешно обновлены, можно сохранить их и использовать для дальнейших запросов
+//       // Получаем данные ответа
+//       final responseData = json.decode(response.body);
+//
+//       // Сохраняем токены в SharedPreferences
+//       await saveTokenSP(responseData['access']);
+//       print('Токены успешно обновлены: ${response.body}');
+//     } else {
+//       // Ошибка при обновлении токенов
+//       print('Ошибка при обновлении токенов: ${response.body}');
+//     }
+//   } catch (e) {
+//     // Обработка ошибок при отправке запроса
+//     print('Ошибка при отправке запроса: $e');
+//   }
+// }
 
-Future<void> refreshTokens(String rToken) async {
-  // URL для обновления токена
-  Uri url = Uri.parse('http://0.0.0.0:8000/api/token/refresh/');
 
-  // Тело запроса с токеном обновления
-  Map<String, String> body = {
-    'refresh': rToken,
-  };
-
-  // Отправка POST запроса на обновление токена
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    // Обработка ответа
-    if (response.statusCode == 200) {
-      // Токены успешно обновлены, можно сохранить их и использовать для дальнейших запросов
-      // Получаем данные ответа
-      final responseData = json.decode(response.body);
-
-      // Сохраняем токены в SharedPreferences
-      await saveTokenSP(responseData['access']);
-      print('Токены успешно обновлены: ${response.body}');
-    } else {
-      // Ошибка при обновлении токенов
-      print('Ошибка при обновлении токенов: ${response.body}');
-    }
-  } catch (e) {
-    // Обработка ошибок при отправке запроса
-    print('Ошибка при отправке запроса: $e');
-  }
-}
-
-void getUserData() async {
-  final prefs = await SharedPreferences.getInstance();
-  final refreshToken = prefs.getString('refreshToken') ?? '';
-  refreshTokens(refreshToken);
-  final accessToken = prefs.getString('accessToken') ?? '';
-  try {
-    final userData = await fetchUserData(accessToken);
-    print(userData); // Вывод данных пользователя
-  } catch (e) {
-    print('Error: $e'); // Вывод ошибки, если она произошла
-  }
-}
-
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
+
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,WidgetRef ref) {
+    final userId = ref.watch(loadUserIdProvider);
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -96,21 +62,63 @@ class ProfilePage extends StatelessWidget {
             children: [
               _buildTitle('Профиль'),
               ElevatedButton(onPressed:  (){
-                getUserData();
+                if ( userId.value != 0 && userId.value != null){
+                    ref.refresh(fetchUserInfo(userId.value!).future);
+                }
+
               }, child: Text('Обновить')),
-               SizedBox(height: 20),
-               _buildUserInfo(Icons.account_box_rounded, 'Имя пользователя:', "Имя"),
-               SizedBox(height: 20),
-               _buildUserInfo(Icons.email, 'Email:', "test@mail.ru"),
-               SizedBox(height: 20),
-               _buildUserInfo(Icons.call, 'Номер телефона:', ''.isEmpty ? 'Отсутствует' : "Заглушка"),
-               SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: ()   async {
+                  final prefs = await SharedPreferences.getInstance();
+                  final accessToken = prefs.getString('accessToken') ?? '';
+                  final refreshToken = prefs.getString('refreshToken') ?? '';
+                  final id = prefs.getInt('id');
+                  print(accessToken);
+                  print(refreshToken);
+                  print(id);
+                  print(userId.value);
+                },
+                child: const Text(
+                  'Вывести',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: ()  async {
+
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  prefs.remove('id');
+                  ref.refresh(loadUserIdProvider);
+                  context.goNamed("home");
+                },
+                child: const Text(
+                  'Выйти',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              userId.value != 0 && userId.value != null
+                  ? ref.watch(fetchUserInfo(userId.value!)).when(
+                  data: (data) => Column(children: [
+                    SizedBox(height: 20),
+                    _buildUserInfo(Icons.account_box_rounded, 'Имя пользователя:', data?.username ??''),
+                    SizedBox(height: 20),
+                    _buildUserInfo(Icons.email, 'Email:', data?.email ??''),
+                    SizedBox(height: 20),
+                    _buildUserInfo(Icons.call, 'Дата создания' , data?.dateJoined.toString()?? 'Нет'),
+                    SizedBox(height: 20),
+                  ],),
+                  error: (error, stack) => Text('ошибка: ${error.toString()}'),
+                  loading:() => const Center(
+                    child: CircularProgressIndicator(color: Color(0xDF290505),),
+                  ))
+                  : Container(),
             ],
           ),
         ),
       ),
     );
   }
+
 
   Widget _buildTitle(String title) {
     return Row(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tutor_app/src/providers/dio_provider.dart';
 import 'dart:convert';
 
 import '../widgets/text_field_widget.dart';
@@ -8,11 +10,6 @@ import 'package:http/http.dart' as http;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<void> saveTokens(String refreshToken, String accessToken) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('refreshToken', refreshToken);
-  await prefs.setString('accessToken', accessToken);
-}
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -83,7 +80,7 @@ class RegisterPageState extends State<RegisterPage> {
               ),
               TextFieldWidget(
                 controller: usernameController,
-                labelText: 'Имя',
+                labelText: 'Имя пользователя',
                 keyboardType: TextInputType.text,
               ),
               TextFieldWidget(
@@ -108,24 +105,28 @@ class RegisterPageState extends State<RegisterPage> {
               //   obscureText: true,
               //   keyboardType: TextInputType.visiblePassword,
               // ),
-              ElevatedButton(
-                onPressed: () async {
+              Consumer(
+                builder: (_, WidgetRef ref, __) {
+                  return ElevatedButton(
+                    onPressed: () async {
 
-                  final Map<String, dynamic> userData = {
-                    'username': usernameController.text,
-                    'email': emailController.text,
-                    'password': passwordController.text,
-                    'is_superuser': false, // не является суперпользователем
-                    'is_staff': false, // не является персоналом
-                    'is_active': true,// Значение должно быть логическим (true/false), не строкой
-                  };
-                  register(userData);
-                  context.goNamed('profile');
-                },
-                child: const Text(
-                  'Зарегистрироваться',
-                  style: TextStyle(color: Colors.red),
-                ),
+                      final Map<String, dynamic> userData = {
+                        'username': usernameController.text,
+                        'email': emailController.text,
+                        'password': passwordController.text,
+                        'is_superuser': false, // не является суперпользователем
+                        'is_staff': false, // не является персоналом
+                        'is_active': true,// Значение должно быть логическим (true/false), не строкой
+                      };
+                      ref.watch(registerUserProvider(userData));
+                      //context.goNamed('profile');
+                    },
+                    child: const Text(
+                      'Зарегистрироваться',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
               ),
             ],
           ),
@@ -152,34 +153,5 @@ class RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
-  }
-}
-
-
-Future<void> register(Map<String, dynamic> userData) async {
-  final String apiUrl = 'http://0.0.0.0:8000/api/register/';
-
-  final response = await http.post(
-    Uri.parse(apiUrl),
-    headers: {
-      'Content-Type': 'application/json', // Указываем тип медиа как JSON
-    },
-    body: json.encode(userData), // Кодируем данные в формат JSON
-  );
-
-
-  if (response.statusCode == 200) {
-    // Успешно зарегистрирован
-    print('User registered successfully \n Ответ: ${response.body}');
-
-    // Получаем данные ответа
-    final responseData = json.decode(response.body);
-
-    // Сохраняем токены в SharedPreferences
-    await saveTokens(responseData['refresh'], responseData['access']);
-
-  } else {
-    // Не удалось зарегистрироваться, обработайте ошибку
-    print('Failed to register user: ${response.body}');
   }
 }
