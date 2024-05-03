@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutor_app/src/screens/profile_page.dart';
 import 'package:tutor_app/src/screens/register_page.dart';
 
+import '../../main.dart';
 import '../providers/dio_provider.dart';
 import '../widgets/text_field_widget.dart';
 import 'package:http/http.dart' as http;
@@ -69,63 +70,78 @@ class LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildForm(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Center(
-          child: Icon(
-            Icons.account_circle,
-            size: MediaQuery.of(context).size.width * 0.55,
-            color: Colors.black26,
-          ),
-        ),
-        TextFieldWidget(
-          controller: emailController,
-          labelText: 'E-mail',
-          keyboardType: TextInputType.emailAddress,
-        ),
-        TextFieldWidget(
-          controller: passwordController,
-          labelText: 'Пароль',
-          obscureText: true,
-          keyboardType: TextInputType.visiblePassword,
-        ),
-        Consumer(
-          builder: (_, WidgetRef ref, __) {
-            return ElevatedButton(
-              onPressed: ()   {
+    return Consumer(
+        builder: (_, WidgetRef ref, __) {
+          var userId = ref.watch(idUserProvider);
+          return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Icon(
+                Icons.account_circle,
+                size: MediaQuery.of(context).size.width * 0.55,
+                color: Colors.black26,
+              ),
+            ),
+            TextFieldWidget(
+              controller: emailController,
+              labelText: 'E-mail',
+              keyboardType: TextInputType.emailAddress,
+            ),
+            TextFieldWidget(
+              controller: passwordController,
+              labelText: 'Пароль',
+              obscureText: true,
+              keyboardType: TextInputType.visiblePassword,
+            ),
+            ElevatedButton(
+              onPressed: ()   async {
                 final Map<String, dynamic> authData = {
                   'email': emailController.text,
                   'password': passwordController.text,
                 };
-                ref.watch(authenticateProvider(authData));
-                ref.refresh(loadUserIdProvider);
-                context.goNamed('profile');
+
+                try {
+                  await ref.read(authenticateProvider(authData).future);
+                  var userId = ref.read(idUserProvider);
+                  if (userId != null) {
+                    context.goNamed('profile');
+                  } else {
+                    scaffoldKey.currentState?.showSnackBar(
+                        showSnackBar("Ошибка входа")
+                    );
+                  }
+                } on AuthenticationException catch (e) {
+                  scaffoldKey.currentState?.showSnackBar(
+                      showSnackBar(e.message)
+                  );
+                }
               },
               child: const Text(
                 'войти',
                 style: TextStyle(color: Colors.red),
               ),
-            );
+            ),
+            ElevatedButton(
+              onPressed: ()   async {
+                final prefs = await SharedPreferences.getInstance();
+                final accessToken = prefs.getString('accessToken') ?? '';
+                final refreshToken = prefs.getString('refreshToken') ?? '';
+                final id = prefs.getInt('id') ;
 
-          },
-        ),
-        ElevatedButton(
-          onPressed: ()   async {
-            final prefs = await SharedPreferences.getInstance();
-            final accessToken = prefs.getString('accessToken') ?? '';
-            final refreshToken = prefs.getString('refreshToken') ?? '';
-            final id = prefs.getInt('id') ?? '';
-            print(accessToken);
-            print(refreshToken);
-            print(id);
-          },
-          child: const Text(
-            'Вывести',
-            style: TextStyle(color: Colors.red),
-          ),
-        )
-      ],
+                print(accessToken);
+                print(refreshToken);
+                print(id);
+                print(userId);
+              },
+              child: const Text(
+                'Вывести',
+                style: TextStyle(color: Colors.red),
+              ),
+            )
+          ],
+        );
+      }
     );
   }
 
@@ -153,4 +169,8 @@ class LoginPageState extends State<LoginPage> {
   }
 }
 
+class AuthenticationException implements Exception {
+  final String message;
+  AuthenticationException(this.message);
+}
 

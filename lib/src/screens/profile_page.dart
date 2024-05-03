@@ -52,7 +52,7 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context,WidgetRef ref) {
-    final userId = ref.watch(loadUserIdProvider);
+    final userId = ref.watch(idUserProvider);
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -61,12 +61,6 @@ class ProfilePage extends ConsumerWidget {
           child: Column(
             children: [
               _buildTitle('Профиль'),
-              ElevatedButton(onPressed:  (){
-                if ( userId.value != 0 && userId.value != null){
-                    ref.refresh(fetchUserInfo(userId.value!).future);
-                }
-
-              }, child: Text('Обновить')),
               ElevatedButton(
                 onPressed: ()   async {
                   final prefs = await SharedPreferences.getInstance();
@@ -76,7 +70,7 @@ class ProfilePage extends ConsumerWidget {
                   print(accessToken);
                   print(refreshToken);
                   print(id);
-                  print(userId.value);
+                  print(userId);
                 },
                 child: const Text(
                   'Вывести',
@@ -84,11 +78,8 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ),
               ElevatedButton(
-                onPressed: ()  async {
-
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                  prefs.remove('id');
-                  ref.refresh(loadUserIdProvider);
+                onPressed: ()  {
+                   ref.watch(removeUserIdProvider.future);
                   context.goNamed("home");
                 },
                 child: const Text(
@@ -96,8 +87,8 @@ class ProfilePage extends ConsumerWidget {
                   style: TextStyle(color: Colors.red),
                 ),
               ),
-              userId.value != 0 && userId.value != null
-                  ? ref.watch(fetchUserInfo(userId.value!)).when(
+              userId != null
+                  ? ref.watch(fetchUserInfo(userId)).when(
                   data: (data) => Column(children: [
                     SizedBox(height: 20),
                     _buildUserInfo(Icons.account_box_rounded, 'Имя пользователя:', data?.username ??''),
