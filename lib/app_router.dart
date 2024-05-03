@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tutor_app/src/screens/home_page.dart';
 import 'package:tutor_app/src/screens/info_page.dart';
+import 'package:tutor_app/src/screens/login_page.dart';
 import 'package:tutor_app/src/screens/navigation_page.dart';
+import 'package:tutor_app/src/screens/profile_page.dart';
+import 'package:tutor_app/src/screens/register_page.dart';
 import 'package:tutor_app/src/screens/splash_page.dart';
 
 
@@ -40,12 +43,27 @@ class AppRouter {
           return NavigationPage(child: child);
         },
         routes: <RouteBase>[
-          /// The first screen to display in the bottom navigation bar.
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const SplashScreen(),
+          ),
           GoRoute(
               path: '/home',
               name: 'home',
-              builder: (context, state) => const MyHomePage(title: '',),
+              builder: (context, state) =>  MyHomePage(),
               routes: [
+                GoRoute(
+                    path: 'login',
+                    name: 'login',
+                    builder: (context, state) => const LoginPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'register',
+                        name: 'register',
+                        builder: (context, state) =>  const RegisterPage(),
+                      ),
+                    ]
+                ),
                 GoRoute(
                     path: 'info',
                     name: 'info',
@@ -53,6 +71,11 @@ class AppRouter {
                       final title = state.uri.queryParameters['text'] as String;
                       return InfoScreen(text: title,);
                     }
+                ),
+                GoRoute(
+                  path: 'profile',
+                  name: 'profile',
+                  builder: (context, state) => const ProfilePage(),
                 ),
               ]
           ),
@@ -90,6 +113,7 @@ class AppRouter {
               ),
             ],
           ),
+
         ],
       ),
     ],
