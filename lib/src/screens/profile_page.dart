@@ -61,12 +61,6 @@ class ProfilePage extends ConsumerWidget {
           child: Column(
             children: [
               _buildTitle('Профиль'),
-              ElevatedButton(onPressed:  (){
-                if ( userId != null){
-                    ref.refresh(fetchUserInfo(userId).future);
-                }
-
-              }, child: Text('Обновить')),
               ElevatedButton(
                 onPressed: ()   async {
                   final prefs = await SharedPreferences.getInstance();
@@ -85,7 +79,7 @@ class ProfilePage extends ConsumerWidget {
               ),
               ElevatedButton(
                 onPressed: ()  {
-                  ref.read(removeUserIdProvider);
+                   ref.watch(removeUserIdProvider.future);
                   context.goNamed("home");
                 },
                 child: const Text(

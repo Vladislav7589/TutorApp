@@ -23,13 +23,13 @@ final dioProvider = Provider<DioClient>(
 
 final idUserProvider = StateProvider<int?>((ref) => null);
 
-final loadUserIdProvider = FutureProvider<void>((ref) async {
+final loadUserIdProvider = FutureProvider.autoDispose<void>((ref) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final id = prefs.getInt('id');
   ref.read(idUserProvider.notifier).update((state) => id);
 });
 
-final removeUserIdProvider = FutureProvider<void>((ref) async {
+final removeUserIdProvider = FutureProvider.autoDispose<void>((ref) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.remove('id');
   ref.refresh(loadUserIdProvider);
