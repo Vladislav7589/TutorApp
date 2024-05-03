@@ -12,19 +12,22 @@ class MyHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context,WidgetRef ref) {
-    final userId = ref.watch(loadUserIdProvider);
+    final userId = ref.watch(idUserProvider);
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
+          userId != null ? IconButton(
             splashRadius: 1,
-            icon: userId.value != 0 && userId.value != null
-                ? Icon(Icons.account_circle_rounded, size: 35, color: Colors.green)
-                : Icon(Icons.account_circle_outlined, size: 35, color: Colors.red),
+            icon: Icon(Icons.account_circle_outlined, size: 35, color: Colors.green),
             onPressed: () {
-              userId.value != 0 && userId.value != null
-                  ? context.goNamed("profile")
-                  : context.goNamed("login");
+              context.goNamed("profile");
+            },
+          )
+          : IconButton(
+            splashRadius: 1,
+            icon:  Icon(Icons.account_circle_outlined, size: 35, color: Colors.red),
+            onPressed: () {
+               context.goNamed("login");
             },
           ),
           ElevatedButton(
@@ -36,7 +39,8 @@ class MyHomePage extends ConsumerWidget {
               print(accessToken);
               print(refreshToken);
               print(id);
-              print(userId.value);
+              //prefs.remove("id");
+              print(userId);
             },
             child: const Text(
               'Вывести',

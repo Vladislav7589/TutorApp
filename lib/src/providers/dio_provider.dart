@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
 import '../models/user.dart';
+import '../screens/login_page.dart';
 
 Future<void> saveTokensAndID(String refreshToken, String accessToken, int id) async {
   final prefs = await SharedPreferences.getInstance();
@@ -20,28 +21,28 @@ final dioProvider = Provider<DioClient>(
       (ref) => DioClient(),
 );
 
+final idUserProvider = StateProvider<int?>((ref) => null);
 
-final fetchUserInfo = FutureProvider.family<User?, int>((ref, id) async {
-  try{
-  return ref.watch(dioProvider).getUserInfo(id);
-  } catch (error) {
-    scaffoldKey.currentState?.showSnackBar(showSnackBar("Ошибка получения данных пользователя\n$error"));
-    return null;
-  }
-});
-
-final loadUserIdProvider = FutureProvider<int?>((ref) async {
+final loadUserIdProvider = FutureProvider<void>((ref) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final id = prefs.getInt('id');
-  return id ;
+  ref.read(idUserProvider.notifier).update((state) => id);
 });
 
 final removeUserIdProvider = FutureProvider<void>((ref) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.remove('id');
-  ref.refresh(loadUserIdProvider); // Обновляем значение userId после удаления id
+  ref.refresh(loadUserIdProvider);
 });
 
+final fetchUserInfo = FutureProvider.family<User?, int>((ref, id) async {
+  try{
+    return ref.watch(dioProvider).getUserInfo(id);
+  } catch (error) {
+    scaffoldKey.currentState?.showSnackBar(showSnackBar("Ошибка получения данных пользователя\n$error"));
+    return null;
+  }
+});
 final registerUserProvider = FutureProvider.family<void, Map<String, dynamic>>((ref, userData) async {
   try{
   await ref.watch(dioProvider).registerUser(userData);
@@ -51,15 +52,17 @@ final registerUserProvider = FutureProvider.family<void, Map<String, dynamic>>((
     // Обработка ошибки удаления данных
   }
 });
-
 final authenticateProvider = FutureProvider.family<void,Map<String, dynamic>>((ref,authData) async {
   try{
    await ref.watch(dioProvider).authenticate(authData);
    ref.refresh(loadUserIdProvider);
-    } catch (error) {
-    scaffoldKey.currentState?.showSnackBar(showSnackBar("Не удалось войти\n${error.toString()}"));
-    // Обработка ошибки удаления данных
+    } on DioException catch (e) {
+    if (e.response?.statusCode == 401 || e.response?.statusCode == 500) {
+      throw AuthenticationException("Неправильная почта или пароль");
+    } else {
+      rethrow;
     }
+  }
 });
 
 class DioClient {
