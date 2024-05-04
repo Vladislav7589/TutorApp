@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutor_app/src/providers/dio_provider.dart';
 
@@ -87,18 +88,31 @@ class ProfilePage extends ConsumerWidget {
                   style: TextStyle(color: Colors.red),
                 ),
               ),
+              ElevatedButton(
+                onPressed: ()  {
+                  ref.refresh(fetchUserInfo(userId!).future);
+                },
+                child: const Text(
+                  'Обновить',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
               userId != null
                   ? ref.watch(fetchUserInfo(userId)).when(
                   data: (data) => Column(children: [
                     SizedBox(height: 20),
-                    _buildUserInfo(Icons.account_box_rounded, 'Имя пользователя:', data?.username ??''),
+                    _buildUserInfo(Icons.email, 'Email:', data?.email ?? ''),
                     SizedBox(height: 20),
-                    _buildUserInfo(Icons.email, 'Email:', data?.email ??''),
+                    _buildUserInfo(Icons.person, 'ФИО:', '${data?.lastName ?? ''} ${data?.firstName ?? ''} ${data?.middleName ?? ''}'),
                     SizedBox(height: 20),
-                    _buildUserInfo(Icons.call, 'Дата создания' , data?.dateJoined.toString()?? 'Нет'),
+                    _buildUserInfo(Icons.location_city, 'Город:', data?.city ?? ''),
+                    SizedBox(height: 20),
+                    _buildUserInfo(Icons.check, 'Активен:', data?.isActive.toString() ?? ''),
+                    SizedBox(height: 20),
+                    _buildUserInfo(Icons.date_range, 'Дата регистрации:', DateFormat('dd.MM.yyyy').format(data!.dateJoined)),
                     SizedBox(height: 20),
                   ],),
-                  error: (error, stack) => Text('ошибка: ${error.toString()}'),
+                  error: (error, stack) => Text('ошибка: ${error.toString()} ${stack.toString()}'),
                   loading:() => const Center(
                     child: CircularProgressIndicator(color: Color(0xDF290505),),
                   ))
@@ -129,21 +143,24 @@ class ProfilePage extends ConsumerWidget {
     return Row(
       children: <Widget>[
         _prefixIcon(iconData),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(label,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 15.0,
-                color: Colors.black,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15.0,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 1),
-            Text(value,
-              style: TextStyle(fontSize: 20, color: Colors.green),
-            ),
-          ],
+              SizedBox(height: 1),
+              Text(value,
+
+                style: TextStyle(fontSize: 20, color: Colors.green),
+              ),
+            ],
+          ),
         ),
       ],
     );

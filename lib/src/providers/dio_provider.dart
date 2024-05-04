@@ -35,7 +35,7 @@ final removeUserIdProvider = FutureProvider.autoDispose<void>((ref) async {
   ref.refresh(loadUserIdProvider);
 });
 
-final fetchUserInfo = FutureProvider.family<User?, int>((ref, id) async {
+final fetchUserInfo = FutureProvider.family.autoDispose<User?, int>((ref, id) async {
   try{
     return ref.watch(dioProvider).getUserInfo(id);
   } catch (error) {
