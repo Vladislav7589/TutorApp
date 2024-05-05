@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutor_app/src/models/tutor.dart';
 
 import '../../main.dart';
 import '../models/user.dart';
@@ -43,6 +44,11 @@ final fetchUserInfo = FutureProvider.family.autoDispose<User?, int>((ref, id) as
     return null;
   }
 });
+final fetchTutorsInfo = FutureProvider<TutorList>((ref) async {
+  var data = await ref.watch(dioProvider).getTutors();
+  return data;
+});
+
 final registerUserProvider = FutureProvider.family<void, Map<String, dynamic>>((ref, userData) async {
   try{
   await ref.watch(dioProvider).registerUser(userData);
@@ -97,6 +103,23 @@ class DioClient {
 
     return user;
   }
+
+  Future<TutorList> getTutors() async {
+    TutorList tutors;
+
+    Response response = await dio.get(
+        'http://0.0.0.0:8000/api/tutor_list/',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json'
+          },
+        ));
+    var result = response.data;
+    tutors = TutorList.fromJson(result);
+
+    return tutors;
+  }
+
   Future<void> registerUser(Map<String, dynamic> userData) async {
     const String apiUrl = 'http://0.0.0.0:8000/api/register/';
 

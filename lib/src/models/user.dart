@@ -1,13 +1,10 @@
 
 class User {
   final int id;
-  final String? firstName;
-  final String? lastName;
-  final String? middleName;
+  final String? firstName, lastName, middleName, city;
   final String email;
-  final String? city;
   final bool isActive;
-  final DateTime dateJoined;
+  final DateTime? dateJoined, dateOfBirth;
 
   User({
     required this.id,
@@ -17,7 +14,9 @@ class User {
     this.city,
     required this.email,
     required this.isActive,
-    required this.dateJoined,
+    this.dateJoined,
+    this.dateOfBirth
+
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -29,7 +28,12 @@ class User {
       email: json['email'] as String,
       city: json['city'] ?? "",
       isActive: json['is_active'] as bool,
-      dateJoined: DateTime.parse(json['date_joined'] as String),
+      dateOfBirth: json['date_of_birth'] == null
+          ? null
+          : DateTime.parse(json['date_of_birth'] as String),
+      dateJoined: json['date_joined'] == null
+          ? null
+          : DateTime.parse(json['date_joined'] as String),
     );
   }
 
@@ -42,7 +46,8 @@ class User {
     data['email'] = email;
     data['city'] = city;
     data['isActive'] = isActive;
-    data['dateJoined'] = dateJoined.toString();
+    data['dateJoined'] = dateJoined?.toIso8601String();
+    data['date_of_birth'] = dateOfBirth?.toIso8601String();
     return data;
   }
 }

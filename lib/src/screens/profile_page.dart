@@ -109,7 +109,7 @@ class ProfilePage extends ConsumerWidget {
                     SizedBox(height: 20),
                     _buildUserInfo(Icons.check, 'Активен:', data?.isActive.toString() ?? ''),
                     SizedBox(height: 20),
-                    _buildUserInfo(Icons.date_range, 'Дата регистрации:', DateFormat('dd.MM.yyyy').format(data!.dateJoined)),
+                    //_buildUserInfo(Icons.date_range, 'Дата регистрации:', DateFormat('dd.MM.yyyy').format(data.dateJoined)),
                     SizedBox(height: 20),
                   ],),
                   error: (error, stack) => Text('ошибка: ${error.toString()} ${stack.toString()}'),
