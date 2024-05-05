@@ -78,11 +78,11 @@ class RegisterPageState extends State<RegisterPage> {
                   color: Colors.black26,
                 ),
               ),
-              TextFieldWidget(
+              /*TextFieldWidget(
                 controller: usernameController,
                 labelText: 'Имя пользователя',
                 keyboardType: TextInputType.text,
-              ),
+              ),*/
               TextFieldWidget(
                 controller: emailController,
                 labelText: 'E-mail',
@@ -111,15 +111,15 @@ class RegisterPageState extends State<RegisterPage> {
                     onPressed: () async {
 
                       final Map<String, dynamic> userData = {
-                        'username': usernameController.text,
                         'email': emailController.text,
                         'password': passwordController.text,
+                        'user_type': "Student",
                         'is_superuser': false, // не является суперпользователем
                         'is_staff': false, // не является персоналом
                         'is_active': true,// Значение должно быть логическим (true/false), не строкой
                       };
                       ref.watch(registerUserProvider(userData));
-                      //context.goNamed('profile');
+                      context.goNamed('profile');
                     },
                     child: const Text(
                       'Зарегистрироваться',
