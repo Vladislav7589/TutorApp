@@ -49,8 +49,8 @@ class _NavigationPageState extends State<NavigationPage> {
             label: 'Главная',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.question_mark),
-            label: 'Вторая',
+            icon: Icon(Icons.calendar_month),
+            label: 'Расписание',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.question_mark),
