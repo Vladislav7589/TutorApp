@@ -1,7 +1,7 @@
 
 class User {
   final int id;
-  final String? firstName, lastName, middleName, city;
+  final String? firstName, lastName, middleName, city, image;
   final String email;
   final bool isActive;
   final DateTime? dateJoined, dateOfBirth;
@@ -12,6 +12,7 @@ class User {
     this.lastName,
     this.middleName,
     this.city,
+    this.image,
     required this.email,
     required this.isActive,
     this.dateJoined,
@@ -27,6 +28,7 @@ class User {
       middleName: json['middle_name'] ?? "",
       email: json['email'] as String,
       city: json['city'] ?? "",
+      image: json['image'] ?? "",
       isActive: json['is_active'] as bool,
       dateOfBirth: json['date_of_birth'] == null
           ? null
@@ -45,6 +47,7 @@ class User {
     data['middle_name'] = middleName;
     data['email'] = email;
     data['city'] = city;
+    data['image'] = image;
     data['isActive'] = isActive;
     data['dateJoined'] = dateJoined?.toIso8601String();
     data['date_of_birth'] = dateOfBirth?.toIso8601String();

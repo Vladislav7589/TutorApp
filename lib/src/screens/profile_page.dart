@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +9,9 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutor_app/src/providers/dio_provider.dart';
-
+import 'package:image_picker/image_picker.dart';
+import '../widgets/avatar.dart';
+import '../widgets/image_picker.dart';
 
 // Future<void> refreshTokens(String rToken) async {
 //   // URL для обновления токена
@@ -45,25 +49,28 @@ import 'package:tutor_app/src/providers/dio_provider.dart';
 //   }
 // }
 
-
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
-
-
   @override
-  Widget build(BuildContext context,WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    File? image;
+
+    final picker = ImagePicker();
+
     final userId = ref.watch(idUserProvider);
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text("Профиль"),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              _buildTitle('Профиль'),
-              ElevatedButton(
-                onPressed: ()   async {
+              //_buildTitle('Профиль'),
+              /*ElevatedButton(
+                onPressed: () async {
                   final prefs = await SharedPreferences.getInstance();
                   final accessToken = prefs.getString('accessToken') ?? '';
                   final refreshToken = prefs.getString('refreshToken') ?? '';
@@ -78,9 +85,109 @@ class ProfilePage extends ConsumerWidget {
                   style: TextStyle(color: Colors.red),
                 ),
               ),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final pickedFile =
+                          await picker.pickImage(source: ImageSource.gallery);
+                      if (pickedFile != null) {
+                        image = File(pickedFile.path);
+                      } else {
+                        print('No image selected.');
+                      }
+                    },
+                    child: Text('Выбрать изображение'),
+                  ),
+                  Text("${image?.path}")
+                ],
+              ),
               ElevatedButton(
-                onPressed: ()  {
-                   ref.watch(removeUserIdProvider.future);
+                onPressed: () {
+                  ref.read(loadImage(image?.path ?? ''));
+                  print(image?.path);
+                },
+                child: Text('Загрузить изображение'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  ref.refresh(fetchUserInfo(userId!).future);
+                },
+                child: const Text(
+                  'Обновить',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),*/
+              userId != null
+                  ? ref.watch(fetchUserInfo(userId)).when(
+                      data: (data) => Column(
+                            children: [
+                              Stack(
+                                children: [
+                                  FancyAvatar(
+                                      image: data?.image??'',
+                                      radius: 100,
+                                      elevation: 16,
+                                      ringColor: Colors.red,
+                                      ringWidth: 3,
+                                      spaceWidth: 4,
+                                      shadowColor: Colors.red),
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: FloatingActionButton(
+                                      backgroundColor: Colors.black38,
+                                      onPressed: () async {
+                                        final pickedFile =
+                                        await picker.pickImage(source: ImageSource.gallery);
+                                        if (pickedFile != null) {
+                                          image = File(pickedFile.path);
+                                        } else {
+                                          print('No image selected.');
+                                        }
+                                        final Map<String, dynamic> data = {
+                                          'id': userId,
+                                          'filePath': image?.path ?? '',
+                                        };
+                                        ref.read(loadImage(data));
+                                        ref.refresh(dioProvider);
+                                      },
+                                      child: Icon(
+                                        Icons.add_a_photo,
+                                        size: 30,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20),
+                              _buildUserInfo(Icons.email, 'Email:', data?.email ?? ''),
+                              SizedBox(height: 20),
+                              _buildUserInfo(Icons.person, 'ФИО:',
+                                  '${data?.lastName ?? ''} ${data?.firstName ?? ''} ${data?.middleName ?? ''}'),
+                              SizedBox(height: 20),
+                              _buildUserInfo(Icons.location_city, 'Город:',
+                                  data?.city ?? ''),
+                              SizedBox(height: 20),
+                              _buildUserInfo(Icons.check, 'День рождения:',
+                                  (data?.dateOfBirth??'не указано').toString()),
+                              SizedBox(height: 20),
+                              //_buildUserInfo(Icons.date_range, 'Дата регистрации:', DateFormat('dd.MM.yyyy').format(data.dateJoined?)),
+                              SizedBox(height: 20),
+                            ],
+                          ),
+                      error: (error, stack) => Text(
+                          'ошибка: ${error.toString()} ${stack.toString()}'),
+                      loading: () => const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xDF290505),
+                            ),
+                          ))
+                  : Container(),
+              ElevatedButton(
+                onPressed: () {
+                  ref.watch(removeUserIdProvider.future);
                   context.goNamed("home");
                 },
                 child: const Text(
@@ -88,35 +195,6 @@ class ProfilePage extends ConsumerWidget {
                   style: TextStyle(color: Colors.red),
                 ),
               ),
-              ElevatedButton(
-                onPressed: ()  {
-                  ref.refresh(fetchUserInfo(userId!).future);
-                },
-                child: const Text(
-                  'Обновить',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-              userId != null
-                  ? ref.watch(fetchUserInfo(userId)).when(
-                  data: (data) => Column(children: [
-                    SizedBox(height: 20),
-                    _buildUserInfo(Icons.email, 'Email:', data?.email ?? ''),
-                    SizedBox(height: 20),
-                    _buildUserInfo(Icons.person, 'ФИО:', '${data?.lastName ?? ''} ${data?.firstName ?? ''} ${data?.middleName ?? ''}'),
-                    SizedBox(height: 20),
-                    _buildUserInfo(Icons.location_city, 'Город:', data?.city ?? ''),
-                    SizedBox(height: 20),
-                    _buildUserInfo(Icons.check, 'Активен:', data?.isActive.toString() ?? ''),
-                    SizedBox(height: 20),
-                    //_buildUserInfo(Icons.date_range, 'Дата регистрации:', DateFormat('dd.MM.yyyy').format(data.dateJoined)),
-                    SizedBox(height: 20),
-                  ],),
-                  error: (error, stack) => Text('ошибка: ${error.toString()} ${stack.toString()}'),
-                  loading:() => const Center(
-                    child: CircularProgressIndicator(color: Color(0xDF290505),),
-                  ))
-                  : Container(),
             ],
           ),
         ),
@@ -124,11 +202,11 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-
   Widget _buildTitle(String title) {
     return Row(
       children: [
-        Text(title,
+        Text(
+          title,
           style: TextStyle(
             color: Color(0xDF290505),
             fontSize: 40.0,
@@ -147,7 +225,8 @@ class ProfilePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(label,
+              Text(
+                label,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 15.0,
@@ -155,8 +234,8 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ),
               SizedBox(height: 1),
-              Text(value,
-
+              Text(
+                value,
                 style: TextStyle(fontSize: 20, color: Colors.green),
               ),
             ],

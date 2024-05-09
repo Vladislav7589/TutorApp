@@ -74,7 +74,7 @@ class AppRouter {
               ]
           ),
           GoRoute(
-            path: '/b',
+            path: '/calendar',
             builder: (context, state) => const CalendarPage(),
           ),
           GoRoute(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -36,6 +37,12 @@ final removeUserIdProvider = FutureProvider.autoDispose<void>((ref) async {
   ref.refresh(loadUserIdProvider);
 });
 
+final loadImage = FutureProvider.family<void, Map<String, dynamic>>((ref, data) async {
+
+  ref.watch(dioProvider).uploadAvatar(data);
+
+});
+
 final fetchUserInfo = FutureProvider.family.autoDispose<User?, int>((ref, id) async {
   try{
     return ref.watch(dioProvider).getUserInfo(id);
@@ -64,7 +71,7 @@ final authenticateProvider = FutureProvider.family<void,Map<String, dynamic>>((r
    ref.refresh(loadUserIdProvider);
     } on DioException catch (e) {
     if (e.response?.statusCode == 401 || e.response?.statusCode == 500) {
-      throw AuthenticationException("Неправильная почта или пароль");
+      throw AuthenticationException("${e.response}");
     } else {
       rethrow;
     }
@@ -73,6 +80,7 @@ final authenticateProvider = FutureProvider.family<void,Map<String, dynamic>>((r
 
 class DioClient {
   final Dio dio = Dio();
+  final ip = '192.168.0.101:8000';
 
   Future<void> logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -91,11 +99,11 @@ class DioClient {
     final accessToken = prefs.getString('accessToken') ?? '';
 
     Response response = await dio.get(
-        'http://0.0.0.0:8000/users/$id',
+        'http://$ip/users/$id',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken' // Set the content-length.
+            //'Authorization': 'Bearer $accessToken' // Set the content-length.
           },
         ));
     var result = response.data;
@@ -108,7 +116,7 @@ class DioClient {
     TutorList tutors;
 
     Response response = await dio.get(
-        'http://0.0.0.0:8000/api/tutor_list/',
+        'http://$ip/api/tutor_list/',
         options: Options(
           headers: {
             'Content-Type': 'application/json'
@@ -121,7 +129,7 @@ class DioClient {
   }
 
   Future<void> registerUser(Map<String, dynamic> userData) async {
-    const String apiUrl = 'http://0.0.0.0:8000/api/register/';
+     String apiUrl = 'http://$ip/api/register/';
 
     Response response = await dio.post(
         apiUrl,
@@ -137,16 +145,45 @@ class DioClient {
   }
 
   Future<void> authenticate(Map<String, dynamic> authData) async {
-    const String apiUrl = 'http://0.0.0.0:8000/api/login/';
+     String apiUrl = 'http://$ip/api/login/';
 
     Response response = await dio.post(
         apiUrl,
         data: json.encode(authData)
     );
-
     Map<String, dynamic> parsedData = response.data;
     await saveTokensAndID(parsedData['refresh'], parsedData['access'], parsedData['id']);
 
+  }
+
+  Future<dynamic> uploadAvatar(Map<String, dynamic> data) async {
+
+    // final prefs = await SharedPreferences.getInstance();
+    // final accessToken = prefs.getString('accessToken') ?? '';
+    final filePath = data['filePath'];
+    final id = data['id'];
+
+    try {
+      FormData formData =
+      FormData.fromMap({
+        "image":
+        await MultipartFile.fromFile(filePath)});
+
+      Response response =
+      await Dio().put(
+          "http://$ip/users/$id/",
+          data: formData,
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+              //'Authorization': 'Bearer $accessToken' // Set the content-length.
+            },
+          )
+      );
+      return response;
+    }on DioException catch (e) {
+      return e.response;
+    }
   }
 }
 
