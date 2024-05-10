@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutor_app/src/providers/dio_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/avatar.dart';
+import '../widgets/error_widget.dart';
 import '../widgets/image_picker.dart';
 
 // Future<void> refreshTokens(String rToken) async {
@@ -175,26 +177,25 @@ class ProfilePage extends ConsumerWidget {
                               SizedBox(height: 20),
                               //_buildUserInfo(Icons.date_range, 'Дата регистрации:', DateFormat('dd.MM.yyyy').format(data.dateJoined?)),
                               SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ref.watch(removeUserIdProvider.future);
+                                  context.goNamed("home");
+                                },
+                                child: const Text(
+                                  'Выйти',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              )
                             ],
                           ),
-                      error: (error, stack) => Text(
-                          'ошибка: ${error.toString()} ${stack.toString()}'),
+                      error: (error, stack) => ErrorScreen(errorMessage: error),
                       loading: () => const Center(
                             child: CircularProgressIndicator(
                               color: Color(0xDF290505),
                             ),
                           ))
                   : Container(),
-              ElevatedButton(
-                onPressed: () {
-                  ref.watch(removeUserIdProvider.future);
-                  context.goNamed("home");
-                },
-                child: const Text(
-                  'Выйти',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
             ],
           ),
         ),

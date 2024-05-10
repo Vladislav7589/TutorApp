@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/subject.dart';
 import '../models/tutor.dart';
 import '../providers/dio_provider.dart';
+import '../widgets/error_widget.dart';
 import 'buttom_sheet.dart';
 
 class MyHomePage extends ConsumerWidget {
@@ -29,7 +30,7 @@ class MyHomePage extends ConsumerWidget {
               context.goNamed(userId != null ? "profile" : "login");
             },
           ),
-          _buildFetchButton(ref),
+          //_buildFetchButton(ref),
         ],
         toolbarHeight: 50,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -41,7 +42,11 @@ class MyHomePage extends ConsumerWidget {
           ),
         ),
       ),
-      body: _buildTutorsListView(ref),
+      body: RefreshIndicator(
+          onRefresh: () {
+            return ref.refresh(fetchTutorsInfo.future);
+          },
+          child:_buildTutorsListView(ref)),
     );
   }
 
@@ -67,29 +72,23 @@ class MyHomePage extends ConsumerWidget {
 
   Widget _buildTutorsListView(WidgetRef ref) {
     return ref.watch(fetchTutorsInfo).when(
-          data: (data) => RefreshIndicator(
-            onRefresh: () {
-              return ref.refresh(fetchTutorsInfo.future);
-            },
-            child: ListView.separated(
-              itemCount: data.tutorList.length,
-              itemBuilder: (context, index) {
-                final tutor = data.tutorList[index];
-                return _buildTutorCard(tutor!, context);
-              },
-              separatorBuilder: (BuildContext context, int index) {
-                return const SizedBox(height: 8);
-              },
-            ),
-          ),
-          error: (error, stack) =>
-              Text('ошибка: ${error.toString()} ${stack.toString()}'),
-          loading: () => const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xDF290505),
-            ),
-          ),
-        );
+      data: (data) => ListView.separated(
+        itemCount: data.tutorList.length,
+        itemBuilder: (context, index) {
+          final tutor = data.tutorList[index];
+          return _buildTutorCard(tutor!, context);
+        },
+        separatorBuilder: (BuildContext context, int index) {
+          return const SizedBox(height: 8);
+        },
+      ),
+      error: (error, stack) => ErrorScreen(errorMessage: error),
+      loading: () => const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xDF290505),
+        ),
+      ),
+    );
   }
 
   Widget _buildTutorCard(Tutor tutor, BuildContext context) {
