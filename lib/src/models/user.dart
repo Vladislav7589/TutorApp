@@ -1,13 +1,10 @@
 
 class User {
   final int id;
-  final String? firstName;
-  final String? lastName;
-  final String? middleName;
+  final String? firstName, lastName, middleName, city, image;
   final String email;
-  final String? city;
   final bool isActive;
-  final DateTime dateJoined;
+  final DateTime? dateJoined, dateOfBirth;
 
   User({
     required this.id,
@@ -15,9 +12,12 @@ class User {
     this.lastName,
     this.middleName,
     this.city,
+    this.image,
     required this.email,
     required this.isActive,
-    required this.dateJoined,
+    this.dateJoined,
+    this.dateOfBirth
+
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -28,8 +28,14 @@ class User {
       middleName: json['middle_name'] ?? "",
       email: json['email'] as String,
       city: json['city'] ?? "",
+      image: json['image'] ?? "",
       isActive: json['is_active'] as bool,
-      dateJoined: DateTime.parse(json['date_joined'] as String),
+      dateOfBirth: json['date_of_birth'] == null
+          ? null
+          : DateTime.parse(json['date_of_birth'] as String),
+      dateJoined: json['date_joined'] == null
+          ? null
+          : DateTime.parse(json['date_joined'] as String),
     );
   }
 
@@ -41,8 +47,10 @@ class User {
     data['middle_name'] = middleName;
     data['email'] = email;
     data['city'] = city;
+    data['image'] = image;
     data['isActive'] = isActive;
-    data['dateJoined'] = dateJoined.toString();
+    data['dateJoined'] = dateJoined?.toIso8601String();
+    data['date_of_birth'] = dateOfBirth?.toIso8601String();
     return data;
   }
 }

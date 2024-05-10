@@ -20,7 +20,7 @@ class _NavigationPageState extends State<NavigationPage> {
     if (location.startsWith('/home')) {
       return 0;
     }
-    if (location.startsWith('/b')) {
+    if (location.startsWith('/calendar')) {
       return 1;
     }
     if (location.startsWith('/c')) {
@@ -33,7 +33,7 @@ class _NavigationPageState extends State<NavigationPage> {
       case 0:
         return context.go('/home');
       case 1:
-        return context.go('/b');
+        return context.go('/calendar');
       case 2:
         return context.go('/c');
     }
@@ -49,8 +49,8 @@ class _NavigationPageState extends State<NavigationPage> {
             label: 'Главная',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.question_mark),
-            label: 'Вторая',
+            icon: Icon(Icons.calendar_month),
+            label: 'Расписание',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.question_mark),

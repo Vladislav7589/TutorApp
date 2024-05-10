@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tutor_app/src/screens/calendar_page.dart';
 import 'package:tutor_app/src/screens/home_page.dart';
-import 'package:tutor_app/src/screens/info_page.dart';
+import 'package:tutor_app/src/screens/buttom_sheet.dart';
 import 'package:tutor_app/src/screens/login_page.dart';
 import 'package:tutor_app/src/screens/navigation_page.dart';
 import 'package:tutor_app/src/screens/profile_page.dart';
 import 'package:tutor_app/src/screens/register_page.dart';
 import 'package:tutor_app/src/screens/splash_page.dart';
+import 'package:tutor_app/src/widgets/card_review.dart';
 
 
 final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -65,14 +67,6 @@ class AppRouter {
                     ]
                 ),
                 GoRoute(
-                    path: 'info',
-                    name: 'info',
-                    builder: (context, state) {
-                      final title = state.uri.queryParameters['text'] as String;
-                      return InfoScreen(text: title,);
-                    }
-                ),
-                GoRoute(
                   path: 'profile',
                   name: 'profile',
                   builder: (context, state) => const ProfilePage(),
@@ -80,38 +74,14 @@ class AppRouter {
               ]
           ),
           GoRoute(
-            path: '/b',
-            builder: (BuildContext context, GoRouterState state) {
-              return const ScreenB();
-            },
-            routes: <RouteBase>[
-              /// Same as "/a/details", but displayed on the root Navigator by
-              /// specifying [parentNavigatorKey]. This will cover both screen B
-              /// and the application shell.
-              GoRoute(
-                path: 'details',
-                parentNavigatorKey: rootNavigatorKey,
-                builder: (BuildContext context, GoRouterState state) {
-                  return const DetailsScreen(label: 'B');
-                },
-              ),
-            ],
+            path: '/calendar',
+            builder: (context, state) => const CalendarPage(),
           ),
           GoRoute(
             path: '/c',
             builder: (BuildContext context, GoRouterState state) {
               return const ScreenC();
-            },
-            routes: <RouteBase>[
-              // The details screen to display stacked on the inner Navigator.
-              // This will cover screen A but not the application shell.
-              GoRoute(
-                path: 'details',
-                builder: (BuildContext context, GoRouterState state) {
-                  return const DetailsScreen(label: 'C');
-                },
-              ),
-            ],
+            }
           ),
 
         ],
@@ -120,34 +90,6 @@ class AppRouter {
   );
 }
 
-
-
-/// The second screen in the bottom navigation bar.
-class ScreenB extends StatelessWidget {
-  /// Constructs a [ScreenB] widget.
-  const ScreenB({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Text('Screen B'),
-            TextButton(
-              onPressed: () {
-                GoRouter.of(context).go('/b/details');
-              },
-              child: const Text('View B details'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// The third screen in the bottom navigation bar.
 class ScreenC extends StatelessWidget {
