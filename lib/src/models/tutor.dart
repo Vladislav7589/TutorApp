@@ -32,7 +32,7 @@ class TutorList {
 
 class Tutor {
   final int? tutorId;
-  final String? educationLevel, briefInfo, educationalInstitution, email, middleName, firstName, lastName, city, phone;
+  final String? educationLevel, briefInfo, image, educationalInstitution, email, middleName, firstName, lastName, city, phone;
   final DateTime? dateOfBirth;
   final List<Subject>? subjects;
   final List<Review>? reviews;
@@ -43,6 +43,7 @@ class Tutor {
         this.briefInfo,
         this.educationalInstitution,
         this.email,
+        this.image,
         this.middleName,
         this.firstName,
         this.lastName,
@@ -59,6 +60,7 @@ class Tutor {
       briefInfo: json['brief_info'],
       educationalInstitution: json['educational_institution'],
       email: json['email'],
+      image: json['image'],
       middleName: json['middle_name'],
       firstName: json['first_name'],
       lastName: json['last_name'],
@@ -84,6 +86,7 @@ class Tutor {
     data['brief_info'] = briefInfo;
     data['educational_institution'] = educationalInstitution;
     data['email'] = email;
+    data['image'] = image;
     data['middle_name'] = middleName;
     data['first_name'] = firstName;
     data['last_name'] = lastName;

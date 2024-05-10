@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +16,6 @@ class MyHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(idUserProvider);
-
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -92,39 +92,66 @@ class MyHomePage extends ConsumerWidget {
   }
 
   Widget _buildTutorCard(Tutor tutor, BuildContext context) {
+    int lengthReviews = tutor.reviews?.length ?? 0;
+    double? averageRating;
+    if(lengthReviews != 0) {
+      averageRating =
+          tutor.reviews!.map((review) => review.rating!).reduce((a, b) => a + b) / lengthReviews;
+    } else {
+      averageRating = 0;
+    }
     return Card(
       elevation: 4,
-      margin: EdgeInsets.all(8),
+      margin: const EdgeInsets.all(8),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${tutor.lastName ?? ''} ${tutor.firstName ?? ''} ${tutor.middleName ?? ''}',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                tutor.image!= null?CachedNetworkImage(
+                  imageUrl: 'http://0.0.0.0:8000${tutor.image}',
+                  fit: BoxFit.cover,
+                  imageBuilder: (context, imageProvider) => CircleAvatar(
+                    backgroundColor: Colors.white,
+                    backgroundImage: imageProvider,
+                  ),
+                  placeholder: (context, url) => const Icon(Icons.person_2_sharp,size: 30,),
+                  errorWidget: (context, url, error) => const Icon(Icons.person_2_sharp,size: 30,),
+                )
+                    : const Icon(Icons.person_2_sharp,size: 30,),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${tutor.lastName ?? ''} ${tutor.firstName ?? ''} ${tutor.middleName ?? ''}',
+                    overflow: TextOverflow.visible,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             _buildSubjectChips(tutor.subjects),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
-                showBottom(context);
+                if((tutor.reviews?.length??0)>0) showBottom(context, tutor);
               },
               child: Row(
                 children: [
-                  Icon(Icons.star, color: Colors.amber),
-                  SizedBox(width: 4),
+                  const Icon(Icons.star, color: Colors.amber),
+                  const SizedBox(width: 4),
                   Text(
-                    '4.5',
-                    style: TextStyle(fontSize: 16),
+                    averageRating.toString(),
+                    style: const TextStyle(fontSize: 16),
                   ),
                   Text(
-                    ' (${tutor.reviews?.length.toString()} отзывов)',
-                    style: TextStyle(fontSize: 16),
+                    ' (${tutor.reviews?.length.toString()})',
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
@@ -140,11 +167,11 @@ class MyHomePage extends ConsumerWidget {
       children: [
         if (subjects != null)
           ...subjects.map((subject) => Padding(
-                padding: EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: 8),
                 child: Chip(
                   label: Text(
                     '${subject.name}',
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               )),

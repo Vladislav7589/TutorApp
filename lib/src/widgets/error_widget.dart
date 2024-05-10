@@ -24,6 +24,7 @@ class ErrorScreen extends StatelessWidget {
       } else if (error.type == DioExceptionType.unknown) {
         errorMessage = 'Произошла ошибка';
       }
+      print(error.type);
     }
     return errorMessage;
   }

@@ -42,24 +42,16 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: Text("Авторизация",style: TextStyle(
+          color: Color(0xDF290505),
+        fontSize: 22.0,
+        fontWeight: FontWeight.bold,
+      )),),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const Row(
-                children: [
-                  Text(
-                    'Авторизация',
-                    style: TextStyle(
-                      color: Color(0xDF290505),
-                      fontSize: 40.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
               _buildForm(context),
               _buildRegisterLink(context),
             ],
@@ -74,12 +66,12 @@ class LoginPageState extends State<LoginPage> {
         builder: (_, WidgetRef ref, __) {
           var userId = ref.watch(idUserProvider);
           return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Center(
               child: Icon(
                 Icons.account_circle,
-                size: MediaQuery.of(context).size.width * 0.55,
+                size: MediaQuery.of(context).size.width * 0.35,
                 color: Colors.black26,
               ),
             ),
@@ -113,7 +105,7 @@ class LoginPageState extends State<LoginPage> {
                   }
                 } on AuthenticationException catch (e) {
                   scaffoldKey.currentState?.showSnackBar(
-                      showSnackBar(e.message)
+                      showSnackBar(jsonDecode(e.message)['error'])
                   );
                 }
               },
@@ -122,7 +114,7 @@ class LoginPageState extends State<LoginPage> {
                 style: TextStyle(color: Colors.red),
               ),
             ),
-            ElevatedButton(
+            /*ElevatedButton(
               onPressed: ()   async {
                 final prefs = await SharedPreferences.getInstance();
                 final accessToken = prefs.getString('accessToken') ?? '';
@@ -138,7 +130,7 @@ class LoginPageState extends State<LoginPage> {
                 'Вывести',
                 style: TextStyle(color: Colors.red),
               ),
-            )
+            )*/
           ],
         );
       }
